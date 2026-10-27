@@ -1,0 +1,88 @@
+name: Standalone builds
+
+# Self-contained app images built with jpackage (bundled runtime, no Java needed on the user's machine).
+# jpackage cannot cross-compile, so every platform builds on its own runner.
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  package:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Older Linux images keep the glibc requirement of the bundled runtime low.
+          - { os: ubuntu-22.04,     target: linux-x64,    exe: 'image/SlimeToAnvil/bin/SlimeToAnvil' }
+          - { os: ubuntu-22.04-arm, target: linux-arm64,  exe: 'image/SlimeToAnvil/bin/SlimeToAnvil' }
+          - { os: windows-latest,   target: windows-x64,  exe: 'image/SlimeToAnvil/SlimeToAnvil.exe' }
+          - { os: macos-15,         target: macos-arm64,  exe: 'image/SlimeToAnvil.app/Contents/MacOS/SlimeToAnvil' }
+          - { os: macos-15-intel,   target: macos-x64,    exe: 'image/SlimeToAnvil.app/Contents/MacOS/SlimeToAnvil' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build, test and package
+        run: ./gradlew build :SlimeToAnvil:jpackageZip --no-daemon
+      - name: Smoke test
+        shell: bash
+        run: ./SlimeToAnvil/build/jpackage/${{ matrix.exe }} --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SlimeToAnvil-${{ matrix.target }}
+          path: SlimeToAnvil/build/jpackage/SlimeToAnvil-${{ matrix.target }}.zip
+          if-no-files-found: error
+
+  # Single-file native executables (GraalVM native-image). setup-graalvm also prepares the MSVC toolchain on Windows.
+  native:
+    name: native-${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-22.04,     target: linux-x64 }
+          - { os: ubuntu-22.04-arm, target: linux-arm64 }
+          - { os: windows-latest,   target: windows-x64 }
+          - { os: macos-15,         target: macos-arm64 }
+          - { os: macos-15-intel,   target: macos-x64 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm-community'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build native executable
+        run: ./gradlew :SlimeToAnvil:nativeImage --no-daemon
+      - name: Smoke test
+        shell: bash
+        run: ./SlimeToAnvil/build/native/SlimeToAnvil-${{ matrix.target }}* --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SlimeToAnvil-single-file-${{ matrix.target }}
+          path: SlimeToAnvil/build/native/SlimeToAnvil-${{ matrix.target }}*
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [package, native]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*

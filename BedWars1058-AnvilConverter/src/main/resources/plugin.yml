@@ -1,0 +1,20 @@
+name: BedWars1058-AnvilConverter
+version: '${version}'
+main: dev.etran.bedwars.anvilconverter.AnvilConverterPlugin
+# 1.13 keeps the plugin out of the legacy-material compatibility layer on newer servers;
+# 1.8 - 1.12 servers simply ignore the key.
+api-version: '1.13'
+authors: [etran]
+description: Converts BedWars1058 slime arena worlds (SWM / ASWM / ASP) to plain Anvil worlds.
+website: https://etran.dev
+softdepend: [BedWars1058, SlimeWorldManager, AdvancedSlimeWorldManager, AdvancedSlimePaper]
+commands:
+  bwanvil:
+    description: Convert slime arena worlds to Anvil
+    usage: /<command> <list|info|convert|reload> [name|all] [overwrite]
+    aliases: [anvilconverter, bw-anvil]
+    permission: bwanvil.use
+permissions:
+  bwanvil.use:
+    description: Use /bwanvil
+    default: op

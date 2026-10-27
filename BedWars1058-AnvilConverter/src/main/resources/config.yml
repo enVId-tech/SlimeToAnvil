@@ -1,0 +1,29 @@
+# BedWars1058-AnvilConverter
+#
+# Slime worlds are read and written as plain Anvil worlds, so BedWars1058's normal (non-slime) world handling
+# can be used instead of a slime adapter. Slime files are never modified or deleted.
+
+# Folders (relative to the server folder, or absolute) that are searched for <name>.slime files.
+slime-directories:
+  - plugins/SlimeWorldManager/slime_worlds   # SlimeWorldManager / AdvancedSlimeWorldManager
+  - slime_worlds                             # AdvancedSlimePaper
+
+# Where converted worlds go. Empty = the server's world folder. BedWars1058 looks for the arena template world
+# there, in a folder that is named exactly like the arena.
+output-directory: ""
+
+# BedWars1058's arena configs; used by `/bwanvil list` to show which slime worlds are arenas.
+arenas-directory: plugins/BedWars1058/Arenas
+
+# What to do when the target folder already exists:
+#   skip       - leave it alone
+#   backup     - rename it to <name>.bak-<timestamp> and convert (default)
+#   overwrite  - replace the converted world files in it
+existing-world: backup
+
+include-entities: true     # copy entities (villagers, armor stands, ...)
+write-level-dat: true      # written for 1.8 - 1.12 worlds only; newer servers create their own
+
+auto-convert:
+  enabled: false           # convert missing arena worlds on server start
+  only-arenas: true        # only slime worlds that match a BedWars1058 arena name

@@ -1,0 +1,15 @@
+[versions]
+kotlin = "2.2.21"
+shadow = "9.2.2"
+aircompressor = "0.27"
+# Compile against the oldest API we support (1.8.8). Newer servers keep the used subset stable.
+spigot = "1.8.8-R0.1-SNAPSHOT"
+
+[libraries]
+aircompressor = { module = "io.airlift:aircompressor", version.ref = "aircompressor" }
+spigot-api = { module = "org.spigotmc:spigot-api", version.ref = "spigot" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
