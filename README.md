@@ -1,4 +1,4 @@
-# etran-bedwars-anvil
+# Slime To Anvil World Converter / BedWars1058-AnvilConverter
 
 | Module | What it is |
 |---|---|
